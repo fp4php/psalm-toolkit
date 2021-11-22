@@ -6,10 +6,11 @@ namespace Klimick\PsalmTest\Integration;
 
 use Closure;
 use PhpParser\Node;
-use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Type;
-use Fp\Functional\Option\Option;
+use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
+use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
+use Fp\Functional\Option\Option;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
 use function Fp\Collection\first;
@@ -20,16 +21,17 @@ final class Psalm
     /**
      * @return Closure(Node\Expr | Node\Name | Node\Stmt\Return_): Option<Type\Union>
      */
-    public static function getType(MethodReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from): Closure
+    public static function getType(
+        MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from,
+    ): Closure
     {
-        $type_provider = match (true) {
+        $provider = match (true) {
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
+            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
         };
 
-        return fn(Node\Expr | Node\Name | Node\Stmt\Return_ $for) => Option::fromNullable(
-            $type_provider->getType($for)
-        );
+        return fn(Node\Expr | Node\Name | Node\Stmt\Return_ $for) => Option::fromNullable($provider->getType($for));
     }
 
     /**
