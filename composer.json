@@ -1,0 +1,27 @@
+{
+    "name": "klimick/psalm-test",
+    "description": "Testing tool for psalm plugins",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Klimick\\PsalmTest\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "adrew",
+            "email": "klimichkartorgnusov@gmail.com"
+        }
+    ],
+    "extra": {
+        "psalm": {
+            "pluginClass": "Klimick\\PsalmTest\\Integration\\Plugin"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "vimeo/psalm": "^4.13",
+        "whsv26/functional": "^4.2"
+    }
+}
