@@ -38,12 +38,14 @@ final class ShapeReturnTypeProvider implements MethodReturnTypeProviderInterface
                     ->flatMap(Psalm::getTypeParam(of: StaticTypeInterface::class, position: 0));
             }
 
-            $shape = new Type\Union([
-                new Type\Atomic\TKeyedArray($remapped),
-            ]);
+            $keyed_array = new Type\Atomic\TKeyedArray($remapped);
+            $keyed_array->sealed = $arg_type->sealed;
+            $keyed_array->is_list = $arg_type->is_list;
 
             return new Type\Union([
-                new Type\Atomic\TGenericObject(StaticTypeInterface::class, [$shape]),
+                new Type\Atomic\TGenericObject(StaticTypeInterface::class, [
+                    new Type\Union([$keyed_array]),
+                ]),
             ]);
         });
 
