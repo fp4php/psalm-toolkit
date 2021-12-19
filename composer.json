@@ -22,6 +22,6 @@
     "require": {
         "php": "^8.0",
         "vimeo/psalm": "^4.13",
-        "whsv26/functional": "^4.2"
+        "whsv26/functional": "^4.10"
     }
 }
