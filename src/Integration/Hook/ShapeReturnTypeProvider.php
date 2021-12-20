@@ -31,16 +31,23 @@ final class ShapeReturnTypeProvider implements MethodReturnTypeProviderInterface
                 ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
 
             $remapped = [];
+            $all_keys_defined = true;
 
             foreach ($arg_type->properties as $key => $type) {
-                $remapped[$key] = yield Option::some($type)
+                $type = yield Option::some($type)
                     ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
                     ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTypeInterface::class, position: 0));
+
+                if ($type->possibly_undefined) {
+                    $all_keys_defined = false;
+                }
+
+                $remapped[$key] = $type;
             }
 
             $keyed_array = new Type\Atomic\TKeyedArray($remapped);
             $keyed_array->sealed = $arg_type->sealed;
-            $keyed_array->is_list = $arg_type->is_list;
+            $keyed_array->is_list = $all_keys_defined ? $arg_type->is_list : false;
 
             return new Type\Union([
                 new Type\Atomic\TGenericObject(StaticTypeInterface::class, [
