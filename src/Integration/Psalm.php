@@ -6,7 +6,9 @@ namespace Klimick\PsalmTest\Integration;
 
 use Closure;
 use Fp\Collections\ArrayList;
+use Fp\Collections\NonEmptyArrayList;
 use PhpParser\Node;
+use Psalm\CodeLocation;
 use Psalm\Type;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
@@ -41,13 +43,33 @@ final class Psalm
     }
 
     /**
-     * @return Option<ArrayList<Type\Union>>
+     * @return Option<ArrayList<CallArg>>
      */
-    public static function getArgTypes(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
+    public static function getCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
     {
-        return ArrayList::collect($from->getCallArgs())
-            ->map(fn(Node\Arg $arg) => $arg->value)
-            ->everyMap(fn($expr) => self::getType($from, $expr));
+        return ArrayList::collect($from->getCallArgs())->everyMap(
+            fn($arg) => Option::do(function() use ($from, $arg) {
+                $source = match (true) {
+                    $from instanceof MethodReturnTypeProviderEvent => $from->getSource(),
+                    $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource(),
+                };
+
+                return new CallArg(
+                    node: $arg,
+                    location: new CodeLocation($source, $arg),
+                    type: yield self::getType($from, $arg->value),
+                );
+            })
+        );
+    }
+
+    /**
+     * @return Option<NonEmptyArrayList<CallArg>>
+     */
+    public static function getNonEmptyCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
+    {
+        return self::getCallArgs($from)
+            ->flatMap(fn($args) => $args->toNonEmptyArrayList());
     }
 
     /**
