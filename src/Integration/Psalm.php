@@ -13,6 +13,7 @@ use Psalm\Type;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
+use Psalm\Plugin\EventHandler\Event\AfterMethodCallAnalysisEvent;
 use Fp\Functional\Option\Option;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
@@ -28,7 +29,10 @@ final class Psalm
      * @return Option<Type\Union>
      */
     public static function getType(
-        MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from,
+        AfterMethodCallAnalysisEvent |
+        MethodReturnTypeProviderEvent |
+        FunctionReturnTypeProviderEvent |
+        AfterExpressionAnalysisEvent $from,
         Node\Expr | Node\Name | Node\Stmt\Return_ $for,
     ): Option
     {
@@ -36,6 +40,7 @@ final class Psalm
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource(),
             $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource(),
             $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource(),
+            $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource(),
         };
         $provider = $source->getNodeTypeProvider();
 
