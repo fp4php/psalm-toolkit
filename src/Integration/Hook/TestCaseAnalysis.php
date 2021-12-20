@@ -120,8 +120,8 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getAssertionName(AfterExpressionAnalysisEvent $event, MethodCall $method_call): Option
     {
         return Option::some($method_call->var)
-            ->flatMap(Psalm::getType($event))
-            ->flatMap(Psalm::asSingleAtomicOf(TNamedObject::class))
+            ->flatMap(fn($expr) => Psalm::getType($event, $expr))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TNamedObject::class, $union))
             ->filter(fn($a) => $a->value === StaticTestCase::class || $a->value === PsalmCodeBlockFactory::class)
             ->flatMap(fn() => proveOf($method_call->name, Identifier::class))
             ->map(fn($id) => $id->name)
@@ -134,7 +134,7 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getTestClass(Context $context): Option
     {
         return Option::fromNullable($context->self)
-            ->flatMap(Psalm::asSubclass(of: PsalmTest::class));
+            ->filter(fn($self) => is_subclass_of($self, PsalmTest::class));
     }
 
     /**
@@ -143,10 +143,10 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getTestMethod(AfterExpressionAnalysisEvent $event, MethodCall $assertion_call): Option
     {
         return Option::some($assertion_call)
-            ->flatMap(Psalm::getType($event))
-            ->flatMap(Psalm::asSingleAtomicOf(class: TGenericObject::class))
-            ->flatMap(Psalm::getTypeParam(of: StaticTestCase::class, position: 0))
-            ->flatMap(Psalm::asSingleAtomicOf(class: TLiteralString::class))
+            ->flatMap(fn($expr) => Psalm::getType($event, $expr))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TGenericObject::class, $union))
+            ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTestCase::class, position: 0))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TLiteralString::class, $union))
             ->map(fn($literal) => strtolower($literal->value));
     }
 }

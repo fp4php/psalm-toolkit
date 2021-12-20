@@ -33,8 +33,8 @@ final class HaveCodeAssertionCollector implements AssertionCollectorInterface
     private static function getClosureReturnType(AssertionCollectingContext $context): Option
     {
         return first($context->assertion_call->args)
-            ->flatMap(Psalm::getArgType($context->event))
-            ->flatMap(Psalm::asSingleAtomicOf(TClosure::class))
+            ->flatMap(fn($arg) => Psalm::getArgType($context->event, $arg))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TClosure::class, $union))
             ->map(fn($atomic) => $atomic->return_type ?? Type::getVoid());
     }
 

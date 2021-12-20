@@ -41,7 +41,7 @@ final class SeePsalmIssuesCollector implements AssertionCollectorInterface
     {
         $formatting_args = Option::do(function() use ($context) {
             $issue_args = yield self::getSeePsalmIssueArg($context, position: 2)
-                ->flatMap(Psalm::asSingleAtomicOf(Type\Atomic\TKeyedArray::class));
+                ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
 
             $replacements = [];
 
@@ -61,7 +61,7 @@ final class SeePsalmIssuesCollector implements AssertionCollectorInterface
     private static function getLiteralStringValue(): Closure
     {
         return fn(Type\Union $atomic) => Option::some($atomic)
-            ->flatMap(Psalm::asSingleAtomicOf(TLiteralString::class))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TLiteralString::class, $union))
             ->map(fn($atomic) => $atomic->value);
     }
 
@@ -70,7 +70,8 @@ final class SeePsalmIssuesCollector implements AssertionCollectorInterface
      */
     private static function getSeePsalmIssueArg(AssertionCollectingContext $context, int $position): Option
     {
-        return at($context->assertion_call->args, $position)->flatMap(Psalm::getArgType($context->event));
+        return at($context->assertion_call->args, $position)
+            ->flatMap(fn($arg) => Psalm::getArgType($context->event, $arg));
     }
 
     public static function isSupported(AssertionCollectingContext $context): bool

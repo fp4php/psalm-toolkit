@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klimick\PsalmTest\Integration;
 
 use Closure;
+use Fp\Collections\ArrayList;
 use PhpParser\Node;
 use Psalm\Type;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
@@ -16,43 +17,66 @@ use function Fp\Collection\at;
 use function Fp\Collection\first;
 use function Fp\Evidence\proveOf;
 
+/**
+ * @internal
+ */
 final class Psalm
 {
     /**
-     * @return Closure(Node\Expr | Node\Name | Node\Stmt\Return_): Option<Type\Union>
+     * @return Option<Type\Union>
      */
     public static function getType(
         MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from,
-    ): Closure
+        Node\Expr | Node\Name | Node\Stmt\Return_ $for,
+    ): Option
     {
-        $provider = match (true) {
-            $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
-            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+        $source = match (true) {
+            $from instanceof MethodReturnTypeProviderEvent => $from->getSource(),
+            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource(),
+            $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource(),
         };
+        $provider = $source->getNodeTypeProvider();
 
-        return fn(Node\Expr | Node\Name | Node\Stmt\Return_ $for) => Option::fromNullable($provider->getType($for));
+        return Option::fromNullable($provider->getType($for));
     }
 
     /**
-     * @return Closure(Node\Arg|Node\VariadicPlaceholder): Option<Type\Union>
+     * @return Option<ArrayList<Type\Union>>
      */
-    public static function getArgType(MethodReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from): Closure
+    public static function getArgTypes(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
     {
-        $getType = self::getType($from);
+        return ArrayList::collect($from->getCallArgs())
+            ->map(fn(Node\Arg $arg) => $arg->value)
+            ->everyMap(fn($expr) => self::getType($from, $expr));
+    }
 
-        return fn(Node\Arg|Node\VariadicPlaceholder $arg) => $arg instanceof Node\Arg
-            ? $getType($arg->value)
+    /**
+     * @return ArrayList<Type\Union>
+     */
+    public static function getTemplates(MethodReturnTypeProviderEvent $from): ArrayList
+    {
+        return ArrayList::collect($from->getTemplateTypeParameters() ?? []);
+    }
+
+    /**
+     * @return Option<Type\Union>
+     */
+    public static function getArgType(
+        MethodReturnTypeProviderEvent | AfterExpressionAnalysisEvent $from,
+        Node\Arg | Node\VariadicPlaceholder $for,
+    ): Option
+    {
+        return $for instanceof Node\Arg
+            ? self::getType($from, $for->value)
             : Option::none();
     }
 
     /**
-     * @return Closure(Type\Union): Option<Type\Atomic>
+     * @return Option<Type\Atomic>
      */
-    public static function asSingleAtomic(): Closure
+    public static function asSingleAtomic(Type\Union $union): Option
     {
-        return fn(Type\Union $union) => Option::some($union)
-            ->map(fn($union) => $union->getAtomicTypes())
+        return Option::some($union->getAtomicTypes())
             ->map(fn($atomics) => asList($atomics))
             ->filter(fn($atomics) => 1 === count($atomics))
             ->flatMap(fn($atomics) => first($atomics));
@@ -61,11 +85,11 @@ final class Psalm
     /**
      * @param class-string $of
      * @param 0|positive-int $position
-     * @return Closure(Type\Atomic\TGenericObject): Option<Type\Union>
+     * @return Option<Type\Union>
      */
-    public static function getTypeParam(string $of, int $position): Closure
+    public static function getTypeParam(Type\Atomic\TGenericObject $from, string $of, int $position): Option
     {
-        return fn(Type\Atomic\TGenericObject $generic) => Option::some($generic)
+        return Option::some($from)
             ->filter(fn($a) => $a->value === $of)
             ->flatMap(fn($a) => at($a->type_params, $position));
     }
@@ -74,24 +98,10 @@ final class Psalm
      * @template TAtomic of Type\Atomic
      *
      * @param class-string<TAtomic> $class
-     * @return Closure(Type\Union): Option<TAtomic>
+     * @return Option<TAtomic>
      */
-    public static function asSingleAtomicOf(string $class): Closure
+    public static function asSingleAtomicOf(string $class, Type\Union $union): Option
     {
-        $asSingleAtomic = self::asSingleAtomic();
-
-        return fn(Type\Union $union) => $asSingleAtomic($union)
-            ->flatMap(fn(Type\Atomic $atomic) => proveOf($atomic, $class));
-    }
-
-    /**
-     * @template T
-     *
-     * @param class-string<T> $of
-     * @return Closure(string): Option<class-string<T>>
-     */
-    public static function asSubclass(string $of): Closure
-    {
-        return fn(string $class) => Option::some($class)->filter(fn($self) => is_subclass_of($self, $of));
+        return self::asSingleAtomic($union)->flatMap(fn(Type\Atomic $atomic) => proveOf($atomic, $class));
     }
 }

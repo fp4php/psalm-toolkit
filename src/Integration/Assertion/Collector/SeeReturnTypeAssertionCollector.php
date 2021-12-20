@@ -35,9 +35,9 @@ final class SeeReturnTypeAssertionCollector implements AssertionCollectorInterfa
     private static function getExpectedReturnType(AssertionCollectingContext $context): Option
     {
         return first($context->assertion_call->args)
-            ->flatMap(Psalm::getArgType($context->event))
-            ->flatMap(Psalm::asSingleAtomicOf(TGenericObject::class))
-            ->flatMap(Psalm::getTypeParam(StaticTypeInterface::class, position: 0));
+            ->flatMap(fn($arg) => Psalm::getArgType($context->event, $arg))
+            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TGenericObject::class, $union))
+            ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTypeInterface::class, position: 0));
     }
 
     /**
@@ -46,8 +46,8 @@ final class SeeReturnTypeAssertionCollector implements AssertionCollectorInterfa
     private static function isInvariantCompare(AssertionCollectingContext $context): Option
     {
         return second($context->assertion_call->args)
-            ->flatMap(Psalm::getArgType($context->event))
-            ->flatMap(Psalm::asSingleAtomic())
+            ->flatMap(fn($arg) => Psalm::getArgType($context->event, $arg))
+            ->flatMap(fn($union) => Psalm::asSingleAtomic($union))
             ->filter(fn($atomic) => $atomic instanceof TTrue || $atomic instanceof TFalse)
             ->map(fn($atomic) => match(true) {
                 $atomic instanceof TTrue => true,
