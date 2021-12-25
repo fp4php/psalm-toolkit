@@ -18,6 +18,7 @@ use Fp\Functional\Option\Option;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
 use function Fp\Collection\first;
+use function Fp\Evidence\proveNonEmptyString;
 use function Fp\Evidence\proveOf;
 
 /**
@@ -25,6 +26,14 @@ use function Fp\Evidence\proveOf;
  */
 final class Psalm
 {
+    /**
+     * @return Option<non-empty-string>
+     */
+    public static function getFunctionName(Node\Expr\FuncCall $func_call): Option
+    {
+        return proveNonEmptyString($func_call->getAttribute('resolvedName'));
+    }
+
     /**
      * @return Option<Type\Union>
      */
