@@ -30,7 +30,7 @@ final class Psalm
      */
     public static function getFunctionName(Node\Expr\FuncCall $func_call): Option
     {
-        return proveNonEmptyString($func_call->getAttribute('resolvedName'));
+        return proveNonEmptyString($func_call->name->getAttribute('resolvedName'));
     }
 
     /**
