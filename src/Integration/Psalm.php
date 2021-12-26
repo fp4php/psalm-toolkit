@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Klimick\PsalmTest\Integration;
 
-use Closure;
 use Fp\Collections\ArrayList;
 use Fp\Collections\NonEmptyArrayList;
 use PhpParser\Node;
@@ -32,6 +31,58 @@ final class Psalm
     public static function getFunctionName(Node\Expr\FuncCall $func_call): Option
     {
         return proveNonEmptyString($func_call->getAttribute('resolvedName'));
+    }
+
+    /**
+     * @return Option<non-empty-string>
+     */
+    public static function getMethodName(Node\Expr\MethodCall|Node\Expr\StaticCall $method_call): Option
+    {
+        return proveOf($method_call->name, Node\Identifier::class)
+            ->flatMap(fn($id) => proveNonEmptyString($id->name));
+    }
+
+    /**
+     * @return Option<non-empty-string>
+     */
+    public static function getClassFromStaticCall(Node\Expr\StaticCall $static_call): Option
+    {
+        return proveOf($static_call->class, Node\Name::class)
+            ->flatMap(fn($name) => proveNonEmptyString($name->getAttribute('resolvedName')));
+    }
+
+    /**
+     * @no-named-arguments
+     */
+    public static function isMethodNameEq(
+        Node\Expr\MethodCall|Node\Expr\StaticCall $method_call,
+        string $expected_name,
+        string ...$rest_names,
+    ): bool
+    {
+        return self::getMethodName($method_call)
+            ->filter(fn($actual) => in_array($actual, [$expected_name, ...$rest_names], true))
+            ->isSome();
+    }
+
+    /**
+     * @no-named-arguments
+     */
+    public static function isFunctionNameEq(Node\Expr\FuncCall $func_call, string $expected_name, string ...$rest_names): bool
+    {
+        return self::getFunctionName($func_call)
+            ->filter(fn($actual) => in_array($actual, [$expected_name, ...$rest_names], true))
+            ->isSome();
+    }
+
+    /**
+     * @return Option<non-empty-string>
+     */
+    public static function getArgName(Node\Arg|Node\VariadicPlaceholder $arg): Option
+    {
+        return proveOf($arg, Node\Arg::class)
+            ->flatMap(fn($arg) => proveOf($arg->name, Node\Identifier::class))
+            ->flatMap(fn($id) => proveNonEmptyString($id->name));
     }
 
     /**
