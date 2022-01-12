@@ -26,6 +26,17 @@ use function Fp\Evidence\proveOf;
 final class Psalm
 {
     /**
+     * @return lowercase-string
+     */
+    public function getClosureId(string $filename, Node\Expr\Closure|Node\Expr\ArrowFunction $closure): string
+    {
+        return strtolower($filename)
+            . ':' . $closure->getLine()
+            . ':' . (int) $closure->getAttribute('startFilePos')
+            . ':-:closure';
+    }
+
+    /**
      * @return Option<non-empty-string>
      */
     public static function getFunctionName(Node\Expr\FuncCall $func_call): Option
