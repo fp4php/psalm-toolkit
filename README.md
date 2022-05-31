@@ -20,11 +20,11 @@ Usage example below:
 ```php
 <?php
 
-namespace Klimick\Decode\Test\Static;
+namespace Fp\Decode\Test\Static;
 
-use Klimick\PsalmTest\PsalmTest;
-use Klimick\PsalmTest\StaticTestCase;
-use Klimick\PsalmTest\StaticType\StaticTypes as t;
+use Fp\PsalmToolkit\StaticTest\PsalmTest;
+use Fp\PsalmToolkit\StaticTest\StaticTestCase;
+use Fp\PsalmToolkit\StaticType\StaticTypes as t;
 
 final class ExampleTest extends PsalmTest
 {
