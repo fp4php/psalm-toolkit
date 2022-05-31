@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Klimick\PsalmTest\StaticType;
+namespace Fp\PsalmToolkit\StaticType;
 
 /**
  * @template-covariant T

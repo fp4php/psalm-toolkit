@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Klimick\PsalmTest\StaticType;
+namespace Fp\PsalmToolkit\StaticType;
 
-use Klimick\PsalmTest\NoCode;
+use Fp\PsalmToolkit\StaticTest\NoCode;
 
 final class StaticTypes
 {

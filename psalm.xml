@@ -23,6 +23,6 @@
     </issueHandlers>
     <plugins>
         <pluginClass class="Fp\Psalm\FunctionalPlugin"/>
-        <pluginClass class="Klimick\PsalmTest\Integration\Plugin"/>
+        <pluginClass class="Fp\PsalmToolkit\Toolkit\Plugin"/>
     </plugins>
 </psalm>

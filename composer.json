@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Klimick\\PsalmTest\\": "src/"
+            "Fp\\PsalmToolkit\\": "src/"
         }
     },
     "authors": [
@@ -16,12 +16,12 @@
     ],
     "extra": {
         "psalm": {
-            "pluginClass": "Klimick\\PsalmTest\\Integration\\Plugin"
+            "pluginClass": "Fp\\PsalmToolkit\\Integration\\Plugin"
         }
     },
     "require": {
         "php": "^8.0",
         "vimeo/psalm": "^4.13",
-        "whsv26/functional": "^4.10"
+        "fp4php/functional": "^4.16"
     }
 }
