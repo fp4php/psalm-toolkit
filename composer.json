@@ -1,5 +1,5 @@
 {
-    "name": "klimick/psalm-test",
+    "name": "fp4php/psalm-toolkit",
     "description": "Testing tool for psalm plugins",
     "type": "library",
     "license": "MIT",

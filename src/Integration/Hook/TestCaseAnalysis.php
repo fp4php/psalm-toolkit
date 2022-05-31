@@ -15,7 +15,7 @@ use Klimick\PsalmTest\Integration\Assertion\Collector\SeePsalmIssuesCollector;
 use Klimick\PsalmTest\Integration\Assertion\Collector\SeeReturnTypeAssertionCollector;
 use Klimick\PsalmTest\Integration\Assertion\Reconciler\SeePsalmIssuesAssertionReconciler;
 use Klimick\PsalmTest\Integration\Assertion\Reconciler\SeeReturnTypeAssertionReconciler;
-use Klimick\PsalmTest\Integration\Psalm;
+use Klimick\PsalmTest\Integration\PsalmToolkit;
 use Klimick\PsalmTest\PsalmCodeBlockFactory;
 use Klimick\PsalmTest\PsalmTest;
 use Klimick\PsalmTest\StaticTestCase;
@@ -120,8 +120,8 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getAssertionName(AfterExpressionAnalysisEvent $event, MethodCall $method_call): Option
     {
         return Option::some($method_call->var)
-            ->flatMap(fn($expr) => Psalm::$types->getType($event, $expr))
-            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TNamedObject::class, $union))
+            ->flatMap(fn($expr) => PsalmToolkit::$types->getType($event, $expr))
+            ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(TNamedObject::class, $union))
             ->filter(fn($a) => $a->value === StaticTestCase::class || $a->value === PsalmCodeBlockFactory::class)
             ->flatMap(fn() => proveOf($method_call->name, Identifier::class))
             ->map(fn($id) => $id->name)
@@ -135,7 +135,7 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     {
         /** @var Option<class-string<PsalmTest>> */
         return Option::fromNullable($context->self)
-            ->filter(fn($self) => Psalm::$codebase->classExtends($self, PsalmTest::class));
+            ->filter(fn($self) => PsalmToolkit::$codebase->classExtends($self, PsalmTest::class));
     }
 
     /**
@@ -144,10 +144,10 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getTestMethod(AfterExpressionAnalysisEvent $event, MethodCall $assertion_call): Option
     {
         return Option::some($assertion_call)
-            ->flatMap(fn($expr) => Psalm::$types->getType($event, $expr))
-            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TGenericObject::class, $union))
-            ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTestCase::class, position: 0))
-            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TLiteralString::class, $union))
+            ->flatMap(fn($expr) => PsalmToolkit::$types->getType($event, $expr))
+            ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(TGenericObject::class, $union))
+            ->flatMap(fn($generic) => PsalmToolkit::$types->getGeneric($generic, StaticTestCase::class, position: 0))
+            ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(TLiteralString::class, $union))
             ->map(fn($literal) => strtolower($literal->value));
     }
 }

@@ -6,7 +6,7 @@ namespace Klimick\PsalmTest\Integration;
 
 use Psalm\Codebase;
 
-final class Psalm
+final class PsalmToolkit
 {
     public static Args $args;
     public static Types $types;

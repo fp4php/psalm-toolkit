@@ -9,6 +9,7 @@ use Klimick\PsalmTest\Integration\Assertion\Assertions;
 use Klimick\PsalmTest\Integration\Assertion\Collector\HaveCodeAssertionData;
 use Klimick\PsalmTest\Integration\Assertion\Collector\SeeReturnTypeAssertionData;
 use Klimick\PsalmTest\Integration\Assertion\Issue\SeeReturnTypeAssertionFailed;
+use Klimick\PsalmTest\Integration\PsalmToolkit;
 use Psalm\Internal\Type\Comparator\UnionTypeComparator;
 use Psalm\Internal\Analyzer\ProjectAnalyzer;
 use Psalm\Type;
@@ -35,10 +36,8 @@ final class SeeReturnTypeAssertionReconciler implements AssertionReconcilerInter
 
     private static function isValid(Type\Union $expected, Type\Union $actual, bool $invariant): bool
     {
-        $codebase = ProjectAnalyzer::$instance->getCodebase();
-
         return $invariant
-            ? $actual->getId() === $expected->getId()
-            : UnionTypeComparator::isContainedBy($codebase, $actual, $expected);
+            ? PsalmToolkit::$types->isTypeEqualsToType($actual, $expected)
+            : PsalmToolkit::$types->isTypeContainedByType($actual, $expected);
     }
 }

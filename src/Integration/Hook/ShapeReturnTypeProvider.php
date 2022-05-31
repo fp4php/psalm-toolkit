@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klimick\PsalmTest\Integration\Hook;
 
 use Fp\Functional\Option\Option;
-use Klimick\PsalmTest\Integration\Psalm;
+use Klimick\PsalmTest\Integration\PsalmToolkit;
 use Klimick\PsalmTest\StaticType\StaticTypeInterface;
 use Klimick\PsalmTest\StaticType\StaticTypes;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
@@ -27,16 +27,16 @@ final class ShapeReturnTypeProvider implements MethodReturnTypeProviderInterface
             yield proveTrue('shape' === $event->getMethodNameLowercase());
 
             $arg_type = yield first($event->getCallArgs())
-                ->flatMap(fn($arg) => Psalm::$args->getArgType($event, $arg))
-                ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
+                ->flatMap(fn($arg) => PsalmToolkit::$args->getArgType($event, $arg))
+                ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
 
             $remapped = [];
             $all_keys_defined = true;
 
             foreach ($arg_type->properties as $key => $type) {
                 $type = yield Option::some($type)
-                    ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
-                    ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTypeInterface::class, position: 0));
+                    ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
+                    ->flatMap(fn($generic) => PsalmToolkit::$types->getGeneric($generic, StaticTypeInterface::class, position: 0));
 
                 if ($type->possibly_undefined) {
                     $all_keys_defined = false;

@@ -6,7 +6,7 @@ namespace Klimick\PsalmTest\Integration\Hook;
 
 use Fp\Collections\NonEmptyLinkedList;
 use Fp\Functional\Option\Option;
-use Klimick\PsalmTest\Integration\Psalm;
+use Klimick\PsalmTest\Integration\PsalmToolkit;
 use Klimick\PsalmTest\StaticType\StaticTypeInterface;
 use Klimick\PsalmTest\StaticType\StaticTypes;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
@@ -52,17 +52,17 @@ final class IntersectionReturnTypeProvider implements MethodReturnTypeProviderIn
     {
         return Option::do(function() use ($event) {
             $keyed_array = yield first($event->getCallArgs())
-                ->flatMap(fn($arg) => Psalm::$args->getArgType($event, $arg))
-                ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union))
+                ->flatMap(fn($arg) => PsalmToolkit::$args->getArgType($event, $arg))
+                ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union))
                 ->filter(fn($keyed_array) => $keyed_array->is_list);
 
             $types = [];
 
             foreach ($keyed_array->properties as $property) {
                 $types[] = yield Option::some($property)
-                    ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
-                    ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTypeInterface::class, position: 0))
-                    ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TNamedObject::class, $union));
+                    ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
+                    ->flatMap(fn($generic) => PsalmToolkit::$types->getGeneric($generic, StaticTypeInterface::class, position: 0))
+                    ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(Type\Atomic\TNamedObject::class, $union));
             }
 
             return NonEmptyLinkedList::collectNonEmpty($types);

@@ -23,17 +23,17 @@ final class Classlikes
     public function getStorage(string|Atomic\TNamedObject $classlike): Option
     {
         return Option::fromNullable(
-            Psalm::$codebase->classlikes->getStorageFor($this->toFqClassName($classlike))
+            PsalmToolkit::$codebase->classlikes->getStorageFor($this->toFqClassName($classlike))
         );
     }
 
     public function classExtends(string|Atomic\TNamedObject $classlike, string $possible_parent): bool
     {
-        return Psalm::$codebase->classlikes->classExtends($this->toFqClassName($classlike), $possible_parent);
+        return PsalmToolkit::$codebase->classlikes->classExtends($this->toFqClassName($classlike), $possible_parent);
     }
 
     public function classImplements(string|Atomic\TNamedObject $classlike, string $interface): bool
     {
-        return Psalm::$codebase->classlikes->classImplements($this->toFqClassName($classlike), $interface);
+        return PsalmToolkit::$codebase->classlikes->classImplements($this->toFqClassName($classlike), $interface);
     }
 }

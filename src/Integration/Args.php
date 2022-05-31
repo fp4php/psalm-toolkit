@@ -34,7 +34,7 @@ final class Args
     ): Option
     {
         return proveOf($for, Node\Arg::class)
-            ->flatMap(fn(Node\Arg $arg) => Psalm::$types->getType($from, $arg->value));
+            ->flatMap(fn(Node\Arg $arg) => PsalmToolkit::$types->getType($from, $arg->value));
     }
 
     /**

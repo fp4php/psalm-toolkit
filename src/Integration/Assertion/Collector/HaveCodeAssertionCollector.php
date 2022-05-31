@@ -6,7 +6,7 @@ namespace Klimick\PsalmTest\Integration\Assertion\Collector;
 
 use Fp\Functional\Option\Option;
 use Klimick\PsalmTest\Integration\Assertion\Assertions;
-use Klimick\PsalmTest\Integration\Psalm;
+use Klimick\PsalmTest\Integration\PsalmToolkit;
 use PhpParser\Node;
 use Psalm\CodeLocation;
 use Psalm\Type;
@@ -33,8 +33,8 @@ final class HaveCodeAssertionCollector implements AssertionCollectorInterface
     private static function getClosureReturnType(AssertionCollectingContext $context): Option
     {
         return first($context->assertion_call->args)
-            ->flatMap(fn($arg) => Psalm::$args->getArgType($context->event, $arg))
-            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TClosure::class, $union))
+            ->flatMap(fn($arg) => PsalmToolkit::$args->getArgType($context->event, $arg))
+            ->flatMap(fn($union) => PsalmToolkit::$types->asSingleAtomicOf(TClosure::class, $union))
             ->map(fn($atomic) => $atomic->return_type ?? Type::getVoid());
     }
 

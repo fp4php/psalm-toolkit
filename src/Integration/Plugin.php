@@ -18,10 +18,10 @@ final class Plugin implements PluginEntryPointInterface
 {
     public function __invoke(RegistrationInterface $registration, ?SimpleXMLElement $config = null): void
     {
-        Psalm::$types = new Types();
-        Psalm::$args = new Args();
-        Psalm::$classlikes = new Classlikes();
-        Psalm::$codebase = ProjectAnalyzer::$instance->getCodebase();
+        PsalmToolkit::$types = new Types();
+        PsalmToolkit::$args = new Args();
+        PsalmToolkit::$classlikes = new Classlikes();
+        PsalmToolkit::$codebase = ProjectAnalyzer::getInstance()->getCodebase();
 
         $register = function(string $hook) use ($registration): void {
             if (class_exists($hook)) {

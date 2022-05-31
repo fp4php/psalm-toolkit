@@ -40,10 +40,20 @@ use function Fp\Evidence\proveOf;
 
 final class Types
 {
+    public function isTypeContainedByType(Union $input_type, Union $container_type): bool
+    {
+        return PsalmToolkit::$codebase->isTypeContainedByType($input_type, $container_type);
+    }
+
+    public function isTypeEqualsToType(Union $a_type, Union $b_type): bool
+    {
+        return $a_type->getId() === $b_type->getId();
+    }
+
     public function expandUnion(string $self_class, Union $type): Union
     {
         return TypeExpander::expandUnion(
-            codebase: Psalm::$codebase,
+            codebase: PsalmToolkit::$codebase,
             return_type: $type,
             self_class: $self_class,
             static_class_type: null,
