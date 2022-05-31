@@ -1,12 +1,12 @@
-## Psalm test
+## Psalm toolkit
 
-Static testing tool for psalm plugins.
+Helpers for plugin authoring and static testing tool.
 
 ### Installation
 
 ```shell
-$ composer require --dev klimick/psalm-test
-$ vendor/bin/psalm-plugin enable klimick/psalm-test
+$ composer require --dev fp4php/psalm-toolkit
+$ vendor/bin/psalm-plugin enable fp4php/psalm-toolkit
 ```
 
 ### Usage
