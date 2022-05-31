@@ -40,7 +40,7 @@ final class Args
     /**
      * @return Option<ArrayList<CallArg>>
      */
-    public static function getCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
+    public function getCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
     {
         $source = match (true) {
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource(),
@@ -59,9 +59,9 @@ final class Args
     /**
      * @return Option<NonEmptyArrayList<CallArg>>
      */
-    public static function getNonEmptyCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
+    public function getNonEmptyCallArgs(MethodReturnTypeProviderEvent | FunctionReturnTypeProviderEvent $from): Option
     {
-        return self::getCallArgs($from)
+        return $this->getCallArgs($from)
             ->flatMap(fn($args) => $args->toNonEmptyArrayList());
     }
 }
