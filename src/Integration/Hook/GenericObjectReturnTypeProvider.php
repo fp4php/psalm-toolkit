@@ -50,8 +50,8 @@ final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderI
     private static function getTypeConstructor(MethodReturnTypeProviderEvent $event): Option
     {
         return first($event->getCallArgs())
-            ->flatMap(fn($arg) => Psalm::getArgType($event, $arg))
-            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TLiteralClassString::class, $union))
+            ->flatMap(fn($arg) => Psalm::$args->getArgType($event, $arg))
+            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TLiteralClassString::class, $union))
             ->map(fn($atomic) => $atomic->value);
     }
 
@@ -61,8 +61,8 @@ final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderI
     private static function getTypeParams(MethodReturnTypeProviderEvent $event): Option
     {
         return second($event->getCallArgs())
-            ->flatMap(fn($arg) => Psalm::getArgType($event, $arg))
-            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union))
+            ->flatMap(fn($arg) => Psalm::$args->getArgType($event, $arg))
+            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union))
             ->filter(fn($keyed_array) => $keyed_array->is_list)
             ->map(fn($keyed_array) => $keyed_array->properties)
             ->flatMap(self::collectTypeParams());
@@ -79,8 +79,8 @@ final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderI
 
                 foreach ($properties as $property) {
                     $type_param[] = yield Option::some($property)
-                        ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TGenericObject::class, $union))
-                        ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTypeInterface::class, position: 0));
+                        ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TGenericObject::class, $union))
+                        ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTypeInterface::class, position: 0));
                 }
 
                 return $type_param;

@@ -120,8 +120,8 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getAssertionName(AfterExpressionAnalysisEvent $event, MethodCall $method_call): Option
     {
         return Option::some($method_call->var)
-            ->flatMap(fn($expr) => Psalm::getType($event, $expr))
-            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TNamedObject::class, $union))
+            ->flatMap(fn($expr) => Psalm::$types->getType($event, $expr))
+            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TNamedObject::class, $union))
             ->filter(fn($a) => $a->value === StaticTestCase::class || $a->value === PsalmCodeBlockFactory::class)
             ->flatMap(fn() => proveOf($method_call->name, Identifier::class))
             ->map(fn($id) => $id->name)
@@ -133,8 +133,9 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
      */
     private static function getTestClass(Context $context): Option
     {
+        /** @var Option<class-string<PsalmTest>> */
         return Option::fromNullable($context->self)
-            ->filter(fn($self) => is_subclass_of($self, PsalmTest::class));
+            ->filter(fn($self) => Psalm::$codebase->classExtends($self, PsalmTest::class));
     }
 
     /**
@@ -143,10 +144,10 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     private static function getTestMethod(AfterExpressionAnalysisEvent $event, MethodCall $assertion_call): Option
     {
         return Option::some($assertion_call)
-            ->flatMap(fn($expr) => Psalm::getType($event, $expr))
-            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TGenericObject::class, $union))
-            ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTestCase::class, position: 0))
-            ->flatMap(fn($union) => Psalm::asSingleAtomicOf(TLiteralString::class, $union))
+            ->flatMap(fn($expr) => Psalm::$types->getType($event, $expr))
+            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TGenericObject::class, $union))
+            ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTestCase::class, position: 0))
+            ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(TLiteralString::class, $union))
             ->map(fn($literal) => strtolower($literal->value));
     }
 }

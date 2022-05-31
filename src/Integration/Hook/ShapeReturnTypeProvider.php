@@ -27,16 +27,16 @@ final class ShapeReturnTypeProvider implements MethodReturnTypeProviderInterface
             yield proveTrue('shape' === $event->getMethodNameLowercase());
 
             $arg_type = yield first($event->getCallArgs())
-                ->flatMap(fn($arg) => Psalm::getArgType($event, $arg))
-                ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
+                ->flatMap(fn($arg) => Psalm::$args->getArgType($event, $arg))
+                ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union));
 
             $remapped = [];
             $all_keys_defined = true;
 
             foreach ($arg_type->properties as $key => $type) {
                 $type = yield Option::some($type)
-                    ->flatMap(fn($union) => Psalm::asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
-                    ->flatMap(fn($generic) => Psalm::getTypeParam($generic, StaticTypeInterface::class, position: 0));
+                    ->flatMap(fn($union) => Psalm::$types->asSingleAtomicOf(Type\Atomic\TGenericObject::class, $union))
+                    ->flatMap(fn($generic) => Psalm::$types->getGeneric($generic, StaticTypeInterface::class, position: 0));
 
                 if ($type->possibly_undefined) {
                     $all_keys_defined = false;
