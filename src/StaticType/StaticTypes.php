@@ -133,7 +133,7 @@ final class StaticTypes
      * @template T of object
      *
      * @param non-empty-list<StaticTypeInterface<T>> $types
-     * @return  StaticTypeInterface<T>
+     * @return StaticTypeInterface<T>
      */
     public static function intersection(array $types): StaticTypeInterface
     {
