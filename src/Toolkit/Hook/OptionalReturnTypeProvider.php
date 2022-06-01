@@ -6,6 +6,7 @@ namespace Fp\PsalmToolkit\Toolkit\Hook;
 
 use Fp\Functional\Option\Option;
 use Fp\PsalmToolkit\StaticType\StaticTypeInterface;
+use Fp\PsalmToolkit\Toolkit\PsalmApi;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\MethodReturnTypeProviderInterface;
 use Psalm\Type;
@@ -26,12 +27,7 @@ final class OptionalReturnTypeProvider implements MethodReturnTypeProviderInterf
 
             $possibly_undefined = yield Option::fromNullable($event->getTemplateTypeParameters())
                 ->flatMap(fn($template_params) => first($template_params))
-                ->map(function(Type\Union $type) {
-                    $cloned = clone $type;
-                    $cloned->possibly_undefined = true;
-
-                    return $cloned;
-                });
+                ->map(fn(Type\Union $type) => PsalmApi::$types->asPossiblyUndefined($type));
 
             return new Type\Union([
                 new Type\Atomic\TGenericObject(StaticTypeInterface::class, [$possibly_undefined]),
