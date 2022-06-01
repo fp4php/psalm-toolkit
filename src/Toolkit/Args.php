@@ -11,6 +11,7 @@ use Fp\Functional\Option\Option;
 use Psalm\CodeLocation;
 use Psalm\NodeTypeProvider;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
+use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterMethodCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
@@ -26,6 +27,7 @@ final class Args
     public function getArgType(
         StatementsSource |
         NodeTypeProvider |
+        AfterStatementAnalysisEvent |
         AfterMethodCallAnalysisEvent |
         MethodReturnTypeProviderEvent |
         FunctionReturnTypeProviderEvent |

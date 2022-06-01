@@ -36,4 +36,15 @@ final class Classlikes
     {
         return PsalmApi::$codebase->classlikes->classImplements($this->toFqClassName($classlike), $interface);
     }
+
+    public function toShortName(ClassLikeStorage|Atomic\TNamedObject|string $fqn_classlike_name): string
+    {
+        $name = match (true) {
+            $fqn_classlike_name instanceof ClassLikeStorage => $fqn_classlike_name->name,
+            $fqn_classlike_name instanceof Atomic\TNamedObject => $fqn_classlike_name->value,
+            default => $fqn_classlike_name,
+        };
+
+        return str_contains($name, '\\') ? substr(strrchr($name, '\\'), 1) : $name;
+    }
 }

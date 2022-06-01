@@ -15,6 +15,7 @@ use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterMethodCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
+use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
 use Psalm\StatementsSource;
 use Psalm\Type\Atomic;
 use Psalm\Type\Atomic\TArray;
@@ -48,6 +49,27 @@ final class Types
     public function isTypeEqualsToType(Union $a_type, Union $b_type): bool
     {
         return $a_type->getId() === $b_type->getId();
+    }
+
+    public function toDocblockString(Union $union): string
+    {
+        return UnionToString::for($union);
+    }
+
+    public function asPossiblyUndefined(Union $union): Union
+    {
+        $cloned = clone $union;
+        $cloned->possibly_undefined = true;
+
+        return $cloned;
+    }
+
+    public function asAlwaysDefined(Union $union): Union
+    {
+        $cloned = clone $union;
+        $cloned->possibly_undefined = false;
+
+        return $cloned;
     }
 
     public function expandUnion(string $self_class, Union $type): Union
@@ -84,6 +106,7 @@ final class Types
         NodeTypeProvider |
         AfterMethodCallAnalysisEvent |
         MethodReturnTypeProviderEvent |
+        AfterStatementAnalysisEvent |
         FunctionReturnTypeProviderEvent |
         AfterExpressionAnalysisEvent $from,
         Node\Expr | Node\Name | Node\Stmt\Return_ $for,
@@ -92,6 +115,7 @@ final class Types
         $provider = match (true) {
             $from instanceof NodeTypeProvider => $from,
             $from instanceof StatementsSource => $from->getNodeTypeProvider(),
+            $from instanceof AfterStatementAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
             $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
