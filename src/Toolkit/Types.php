@@ -154,6 +154,31 @@ final class Types
         return Option::fromNullable($provider->getType($for));
     }
 
+    public function setType(
+        StatementsSource |
+        NodeTypeProvider |
+        AfterMethodCallAnalysisEvent |
+        MethodReturnTypeProviderEvent |
+        AfterStatementAnalysisEvent |
+        FunctionReturnTypeProviderEvent |
+        AfterExpressionAnalysisEvent $from,
+        Node\Expr | Node\Name | Node\Stmt\Return_ $for,
+        Union $type,
+    ): void
+    {
+        $provider = match (true) {
+            $from instanceof NodeTypeProvider => $from,
+            $from instanceof StatementsSource => $from->getNodeTypeProvider(),
+            $from instanceof AfterStatementAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
+            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+        };
+
+        $provider->setType($for, $type);
+    }
+
     /**
      * @return Option<Atomic>
      */
