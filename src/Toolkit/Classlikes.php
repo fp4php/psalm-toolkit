@@ -10,11 +10,13 @@ use Psalm\Storage\ClassLikeStorage;
 
 final class Classlikes
 {
-    private function toFqClassName(string|Atomic\TNamedObject $classlike): string
+    private function toFqClassName(string|Atomic\TNamedObject|ClassLikeStorage $classlike): string
     {
-        return $classlike instanceof Atomic\TNamedObject
-            ? $classlike->value
-            : $classlike;
+        return match (true) {
+            $classlike instanceof ClassLikeStorage => $classlike->name,
+            $classlike instanceof Atomic\TNamedObject => $classlike->value,
+            default => $classlike,
+        };
     }
 
     /**
@@ -27,12 +29,12 @@ final class Classlikes
         );
     }
 
-    public function classExtends(string|Atomic\TNamedObject $classlike, string $possible_parent): bool
+    public function classExtends(string|Atomic\TNamedObject|ClassLikeStorage $classlike, string $possible_parent): bool
     {
         return PsalmApi::$codebase->classlikes->classExtends($this->toFqClassName($classlike), $possible_parent);
     }
 
-    public function classImplements(string|Atomic\TNamedObject $classlike, string $interface): bool
+    public function classImplements(string|Atomic\TNamedObject|ClassLikeStorage $classlike, string $interface): bool
     {
         return PsalmApi::$codebase->classlikes->classImplements($this->toFqClassName($classlike), $interface);
     }
