@@ -32,6 +32,10 @@ use Psalm\Type\Atomic\TNonEmptyArray;
 use Psalm\Type\Atomic\TNonEmptyList;
 use Psalm\Type\Atomic\TNonEmptyString;
 use Psalm\Type\Atomic\TString;
+use Psalm\Type\Atomic\TTemplateParam;
+use Psalm\Type\Atomic\TIterable;
+use Psalm\Type\Atomic\TNamedObject;
+use Psalm\Type\Atomic\TObjectWithProperties;
 use Psalm\Type\Union;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
@@ -68,6 +72,22 @@ final class Types
     {
         $cloned = clone $union;
         $cloned->possibly_undefined = false;
+
+        return $cloned;
+    }
+
+    /**
+     * @template T of TTemplateParam|TIterable|TNamedObject|TObjectWithProperties
+     * @param T $to
+     * @param TNamedObject|TTemplateParam|TIterable|TObjectWithProperties $type
+     * @return T
+     */
+    public function addIntersection(
+        TTemplateParam|TIterable|TNamedObject|TObjectWithProperties $to,
+        TNamedObject|TTemplateParam|TIterable|TObjectWithProperties $type,
+    ): TTemplateParam|TIterable|TNamedObject|TObjectWithProperties {
+        $cloned = clone $to;
+        $cloned->addIntersectionType($type);
 
         return $cloned;
     }
