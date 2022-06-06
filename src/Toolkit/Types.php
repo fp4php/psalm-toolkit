@@ -51,9 +51,9 @@ final class Types
         return $a_type->getId() === $b_type->getId();
     }
 
-    public function toDocblockString(Union $union): string
+    public function toDocblockString(Union|Atomic $type): string
     {
-        return UnionToString::for($union);
+        return UnionToString::for($type instanceof Atomic ? new Union([$type]) : $type);
     }
 
     public function asPossiblyUndefined(Union $union): Union
