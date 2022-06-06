@@ -7,6 +7,8 @@ namespace Fp\PsalmToolkit\Toolkit;
 use Psalm\Type\Atomic;
 use Fp\Functional\Option\Option;
 use Psalm\Storage\ClassLikeStorage;
+use function array_key_exists;
+use function strtolower;
 
 final class Classlikes
 {
@@ -37,6 +39,17 @@ final class Classlikes
     public function classImplements(string|Atomic\TNamedObject|ClassLikeStorage $classlike, string $interface): bool
     {
         return PsalmApi::$codebase->classlikes->classImplements($this->toFqClassName($classlike), $interface);
+    }
+
+    public function isTraitUsed(string|Atomic\TNamedObject|ClassLikeStorage $classlike, string $trait): bool
+    {
+        $storage = $classlike instanceof ClassLikeStorage
+            ? Option::some($classlike)
+            : $this->getStorage($classlike);
+
+        return $storage
+            ->map(fn(ClassLikeStorage $s) => array_key_exists(strtolower($trait), $s->used_traits))
+            ->getOrElse(false);
     }
 
     public function toShortName(ClassLikeStorage|Atomic\TNamedObject|string $fqn_classlike_name): string
