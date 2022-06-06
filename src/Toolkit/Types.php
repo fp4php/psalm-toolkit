@@ -35,6 +35,7 @@ use Psalm\Type\Atomic\TString;
 use Psalm\Type\Atomic\TTemplateParam;
 use Psalm\Type\Atomic\TIterable;
 use Psalm\Type\Atomic\TNamedObject;
+use Psalm\Type\Atomic\TNull;
 use Psalm\Type\Atomic\TObjectWithProperties;
 use Psalm\Type\Union;
 use function Fp\Cast\asList;
@@ -72,6 +73,14 @@ final class Types
     {
         $cloned = clone $union;
         $cloned->possibly_undefined = false;
+
+        return $cloned;
+    }
+
+    public function asNullable(Union $union): Union
+    {
+        $cloned = clone $union;
+        $cloned->addType(new TNull());
 
         return $cloned;
     }
