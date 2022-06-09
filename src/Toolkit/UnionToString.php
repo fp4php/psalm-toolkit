@@ -48,6 +48,6 @@ final class UnionToString
 
         return $array instanceof Atomic\TNonEmptyArray
             ? "non-empty-array<{$type_params}>"
-            : "array<{$type_params}";
+            : "array<{$type_params}>";
     }
 }
