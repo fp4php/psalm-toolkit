@@ -161,19 +161,19 @@ final class Types
         MethodReturnTypeProviderEvent |
         AfterStatementAnalysisEvent |
         FunctionReturnTypeProviderEvent |
-        AfterExpressionAnalysisEvent $from,
+        AfterExpressionAnalysisEvent $to,
         Node\Expr | Node\Name | Node\Stmt\Return_ $for,
         Union $type,
     ): void
     {
         $provider = match (true) {
-            $from instanceof NodeTypeProvider => $from,
-            $from instanceof StatementsSource => $from->getNodeTypeProvider(),
-            $from instanceof AfterStatementAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
-            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            $to instanceof NodeTypeProvider => $to,
+            $to instanceof StatementsSource => $to->getNodeTypeProvider(),
+            $to instanceof AfterStatementAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
+            $to instanceof MethodReturnTypeProviderEvent => $to->getSource()->getNodeTypeProvider(),
+            $to instanceof FunctionReturnTypeProviderEvent => $to->getStatementsSource()->getNodeTypeProvider(),
+            $to instanceof AfterExpressionAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
+            $to instanceof AfterMethodCallAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
         };
 
         $provider->setType($for, $type);
