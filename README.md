@@ -4,8 +4,10 @@ Helpers for plugin authoring and static testing tool.
 
 ### Installation
 
+Package `fp4php/functional` must be installed manually.
+
 ```shell
-$ composer require --dev fp4php/psalm-toolkit
+$ composer require --dev fp4php/functional fp4php/psalm-toolkit
 $ vendor/bin/psalm-plugin enable fp4php/psalm-toolkit
 ```
 

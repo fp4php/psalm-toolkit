@@ -49,13 +49,19 @@ final class Args
             $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource(),
         };
 
-        return ArrayList::collect($from->getCallArgs())->everyMap(
-            fn($arg) => Option::do(fn() => new CallArg(
-                node: $arg,
-                location: new CodeLocation($source, $arg),
-                type: yield $this->getArgType($from, $arg),
-            ))
-        );
+        return Option::do(function() use ($from, $source) {
+            $args = [];
+
+            foreach ($from->getCallArgs() as $arg) {
+                $args[] = new CallArg(
+                    node: $arg,
+                    location: new CodeLocation($source, $arg),
+                    type: yield $this->getArgType($from, $arg),
+                );
+            }
+
+            return ArrayList::collect($args);
+        });
     }
 
     /**
