@@ -8,6 +8,7 @@ use Fp\PsalmToolkit\Toolkit\Hook\GenericObjectReturnTypeProvider;
 use Fp\PsalmToolkit\Toolkit\Hook\IntersectionReturnTypeProvider;
 use Fp\PsalmToolkit\Toolkit\Hook\OptionalReturnTypeProvider;
 use Fp\PsalmToolkit\Toolkit\Hook\ShapeReturnTypeProvider;
+use Fp\PsalmToolkit\Toolkit\Hook\ShowTypeHook;
 use Fp\PsalmToolkit\Toolkit\Hook\TestCaseAnalysis;
 use Psalm\Internal\Analyzer\ProjectAnalyzer;
 use Psalm\Plugin\PluginEntryPointInterface;
@@ -34,5 +35,6 @@ final class Plugin implements PluginEntryPointInterface
         $register(GenericObjectReturnTypeProvider::class);
         $register(OptionalReturnTypeProvider::class);
         $register(TestCaseAnalysis::class);
+        $register(ShowTypeHook::class);
     }
 }
