@@ -111,11 +111,12 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
 
         return LinkedList::collect($handlers)
             ->filter(fn($handler) => $handler::isSupported($context))
-            ->fold($assertions, fn(Assertions $acc, $collector) => $collector::collect($acc, $context)->getOrCall(fn() => $acc));
+            ->fold($assertions)(fn($acc, $collector) => $collector::collect($acc, $context)->getOrElse($acc));
     }
 
     /**
-     * @return Option<AssertionName>
+     * @return Option<string>
+     * @psalm-return Option<AssertionName>
      */
     private static function getAssertionName(AfterExpressionAnalysisEvent $event, MethodCall $method_call): Option
     {
@@ -139,7 +140,8 @@ final class TestCaseAnalysis implements AfterExpressionAnalysisInterface, AfterF
     }
 
     /**
-     * @return Option<lowercase-string>
+     * @return Option<string>
+     * @psalm-return Option<lowercase-string>
      */
     private static function getTestMethod(AfterExpressionAnalysisEvent $event, MethodCall $assertion_call): Option
     {
