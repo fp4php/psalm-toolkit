@@ -37,6 +37,7 @@ use Psalm\Type\Atomic\TIterable;
 use Psalm\Type\Atomic\TNamedObject;
 use Psalm\Type\Atomic\TNull;
 use Psalm\Type\Atomic\TObjectWithProperties;
+use Psalm\Type\Atomic\TGenericObject;
 use Psalm\Type\Union;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
@@ -234,6 +235,10 @@ final class Types
                     $this->asNonLiteralType($a->type_params[0]),
                     $this->asNonLiteralType($a->type_params[1]),
                 ]),
+                $a instanceof TGenericObject => new TGenericObject(
+                    $a->value,
+                    map($a->type_params, fn(Union $t) => $this->asNonLiteralType($t)),
+                ),
                 default => $a,
             }),
         );
