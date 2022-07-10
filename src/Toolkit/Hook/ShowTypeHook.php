@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 namespace Fp\PsalmToolkit\Toolkit\Hook;
 
+use Fp\Functional\Option\Option;
+use Fp\PsalmToolkit\Toolkit\PsalmApi;
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Name;
+use PhpParser\Node\Stmt\Return_;
 use Psalm\Type\Union;
 use Psalm\CodeLocation;
 use Psalm\Issue\Trace;
@@ -14,50 +21,45 @@ use Psalm\Plugin\EventHandler\AfterExpressionAnalysisInterface;
 use Psalm\Plugin\EventHandler\AfterStatementAnalysisInterface;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
+use function Fp\Evidence\proveOf;
 
 final class ShowTypeHook implements AfterExpressionAnalysisInterface, AfterStatementAnalysisInterface
 {
     public static function afterExpressionAnalysis(AfterExpressionAnalysisEvent $event): ?bool
     {
-        $node = $event->getExpr();
-
-        if (self::hasShowComment($node) && $node instanceof Node\Expr\Assign) {
-            $source = $event->getStatementsSource();
-            $provider = $source->getNodeTypeProvider();
-
-            self::show($provider->getType($node->expr), new CodeLocation($source, $node));
-        }
+        self::handle($event);
 
         return null;
     }
 
     public static function afterStatementAnalysis(AfterStatementAnalysisEvent $event): ?bool
     {
-        $node = $event->getStmt();
-
-        if (self::hasShowComment($node) && $node instanceof Node\Stmt\Return_) {
-            $source = $event->getStatementsSource();
-            $provider = $source->getNodeTypeProvider();
-
-            self::show($provider->getType($node), new CodeLocation($source, $node));
-        }
+        self::handle($event);
 
         return null;
     }
 
-    private static function hasShowComment(Node $node): bool
+    private static function handle(AfterStatementAnalysisEvent|AfterExpressionAnalysisEvent $event): void
     {
-        $doc = $node->getDocComment();
+        $node = $event instanceof AfterStatementAnalysisEvent
+            ? $event->getStmt()
+            : $event->getExpr();
 
-        return null !== $doc && str_contains($doc->getText(), '@show-type');
-    }
+        proveOf($node, Expr::class)
+            ->orElse(fn() => proveOf($node, Name::class))
+            ->orElse(fn() => proveOf($node, Return_::class))
+            ->filter(fn(Node $node) => Option::fromNullable($node->getDocComment())
+                ->map(fn(Doc $doc) => str_contains($doc->getText(), '@show-type'))
+                ->getOrElse(false))
+            ->tap(function($node) use ($event) {
+                $location = new CodeLocation($event->getStatementsSource(), $node);
 
-    private static function show(?Union $type, CodeLocation $location): void
-    {
-        IssueBuffer::accepts(
-            null === $type
-                ? new Trace('Unable to determine type', $location)
-                : new Trace(ShowTypePrettier::pretty($type), $location)
-        );
+                IssueBuffer::accepts(
+                    PsalmApi::$types->getType($event, $node instanceof Assign ? $node->expr : $node)
+                        ->map(fn(Union $type) => ShowTypePrettier::pretty($type))
+                        ->map(fn(string $type) => new Trace($type, $location))
+                        ->getOrCall(fn() => new Trace('Unable to determine type', $location)),
+                );
+            });
     }
 }
