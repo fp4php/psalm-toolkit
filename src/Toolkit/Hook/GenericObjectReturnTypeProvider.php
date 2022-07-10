@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fp\PsalmToolkit\Toolkit\Hook;
 
-use Closure;
 use Fp\Functional\Option\Option;
 use Fp\PsalmToolkit\Toolkit\PsalmApi;
 use Fp\PsalmToolkit\StaticType\StaticTypeInterface;
@@ -13,8 +12,11 @@ use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\MethodReturnTypeProviderInterface;
 use Psalm\Type;
 use Psalm\Type\Atomic\TGenericObject;
+use function Fp\Cast\asList;
 use function Fp\Collection\first;
 use function Fp\Collection\second;
+use function Fp\Collection\sequenceOption;
+use function Fp\Collection\traverseOption;
 use function Fp\Evidence\proveTrue;
 
 final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderInterface
@@ -26,22 +28,18 @@ final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderI
 
     public static function getMethodReturnType(MethodReturnTypeProviderEvent $event): ?Type\Union
     {
-        $return_type = Option::do(function() use ($event) {
-            yield proveTrue('generic' === $event->getMethodNameLowercase());
-
-            $type_constructor = yield self::getTypeConstructor($event);
-            $type_params = yield self::getTypeParams($event);
-
-            $inferred_type = new Type\Union([
-                new Type\Atomic\TGenericObject($type_constructor, $type_params),
-            ]);
-
-            return new Type\Union([
+        return proveTrue('generic' === $event->getMethodNameLowercase())
+            ->flatMap(fn() => sequenceOption([
+                'class' => self::getTypeConstructor($event),
+                'params' => self::getTypeParams($event),
+            ]))
+            ->map(fn($generic) => new Type\Union([
+                new Type\Atomic\TGenericObject($generic['class'], $generic['params']),
+            ]))
+            ->map(fn($inferred_type) => new Type\Union([
                 new Type\Atomic\TGenericObject(StaticTypeInterface::class, [$inferred_type]),
-            ]);
-        });
-
-        return $return_type->get();
+            ]))
+            ->get();
     }
 
     /**
@@ -64,27 +62,11 @@ final class GenericObjectReturnTypeProvider implements MethodReturnTypeProviderI
             ->flatMap(fn($arg) => PsalmApi::$args->getArgType($event, $arg))
             ->flatMap(fn($union) => PsalmApi::$types->asSingleAtomicOf(Type\Atomic\TKeyedArray::class, $union))
             ->filter(fn($keyed_array) => $keyed_array->is_list)
-            ->map(fn($keyed_array) => $keyed_array->properties)
-            ->flatMap(self::collectTypeParams());
-    }
-
-    /**
-     * @return Closure(non-empty-array<array-key, Type\Union>): Option<non-empty-list<Type\Union>>
-     */
-    private static function collectTypeParams(): Closure
-    {
-        return function(array $properties) {
-            return Option::do(function() use ($properties) {
-                $type_param = [];
-
-                foreach ($properties as $property) {
-                    $type_param[] = yield Option::some($property)
-                        ->flatMap(fn($union) => PsalmApi::$types->asSingleAtomicOf(TGenericObject::class, $union))
-                        ->flatMap(fn($generic) => PsalmApi::$types->getFirstGeneric($generic, StaticTypeInterface::class));
-                }
-
-                return $type_param;
-            });
-        };
+            ->flatMap(fn($keyed_array) => traverseOption(
+                asList($keyed_array->properties),
+                fn($property) => Option::some($property)
+                    ->flatMap(fn($union) => PsalmApi::$types->asSingleAtomicOf(TGenericObject::class, $union))
+                    ->flatMap(fn($generic) => PsalmApi::$types->getFirstGeneric($generic, StaticTypeInterface::class))
+            ));
     }
 }

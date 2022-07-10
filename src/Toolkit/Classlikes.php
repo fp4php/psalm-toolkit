@@ -8,6 +8,7 @@ use Psalm\Type\Atomic;
 use Fp\Functional\Option\Option;
 use Psalm\Storage\ClassLikeStorage;
 use function array_key_exists;
+use function Fp\Evidence\proveOf;
 use function strtolower;
 
 final class Classlikes

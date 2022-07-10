@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Fp\PsalmToolkit\Toolkit\Assertion;
 
 use Fp\Functional\Option\Option;
+use function Fp\Collection\at;
 
-/**
- * @psalm-immutable
- */
 final class Assertions
 {
     /**
@@ -26,9 +24,7 @@ final class Assertions
      */
     public function __invoke(string $name): Option
     {
-        return (array_key_exists($name, $this->data) && $this->data[$name] instanceof $name)
-            ? Option::some($this->data[$name])
-            : Option::none();
+        return at($this->data, $name)->filterOf($name);
     }
 
     /**

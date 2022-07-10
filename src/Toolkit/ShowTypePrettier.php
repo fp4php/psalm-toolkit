@@ -146,7 +146,7 @@ final class ShowTypePrettier
 
     private static function keyedArray(Atomic\TKeyedArray $atomic, int $level): string
     {
-        $tab = fn(int $l): string => str_repeat("\t", $l);
+        $tab = fn(int $l): string => str_repeat("    ", $l);
 
         $openBracket = 'array{';
         $closeBracket = $level === 1 ? '}' : $tab($level - 1) . '}';

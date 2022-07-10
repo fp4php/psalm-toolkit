@@ -22,18 +22,13 @@ final class OptionalReturnTypeProvider implements MethodReturnTypeProviderInterf
 
     public static function getMethodReturnType(MethodReturnTypeProviderEvent $event): ?Type\Union
     {
-        $return_type = Option::do(function() use ($event) {
-            yield proveTrue('optional' === $event->getMethodNameLowercase());
-
-            $possibly_undefined = yield Option::fromNullable($event->getTemplateTypeParameters())
+        return proveTrue('optional' === $event->getMethodNameLowercase())
+            ->flatMap(fn() => Option::fromNullable($event->getTemplateTypeParameters())
                 ->flatMap(fn($template_params) => first($template_params))
-                ->map(fn(Type\Union $type) => PsalmApi::$types->asPossiblyUndefined($type));
-
-            return new Type\Union([
+                ->map(fn(Type\Union $type) => PsalmApi::$types->asPossiblyUndefined($type)))
+            ->map(fn($possibly_undefined) => new Type\Union([
                 new Type\Atomic\TGenericObject(StaticTypeInterface::class, [$possibly_undefined]),
-            ]);
-        });
-
-        return $return_type->get();
+            ]))
+            ->get();
     }
 }
