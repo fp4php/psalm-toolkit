@@ -198,7 +198,7 @@ final class Types
      */
     public function asSingleAtomicOf(string $class, Union $union): Option
     {
-        return self::asSingleAtomic($union)
+        return $this->asSingleAtomic($union)
             ->flatMap(fn(Atomic $atomic) => proveOf($atomic, $class));
     }
 
@@ -214,25 +214,25 @@ final class Types
                 $a instanceof TLiteralFloat => new TFloat(),
                 $a instanceof TKeyedArray => $a->is_list
                     ? new TNonEmptyList(
-                        self::asNonLiteralType($a->getGenericValueType()),
+                        $this->asNonLiteralType($a->getGenericValueType()),
                     )
                     : new TNonEmptyArray([
-                        self::asNonLiteralType($a->getGenericKeyType()),
-                        self::asNonLiteralType($a->getGenericValueType()),
+                        $this->asNonLiteralType($a->getGenericKeyType()),
+                        $this->asNonLiteralType($a->getGenericValueType()),
                     ]),
                 $a instanceof TNonEmptyList => new TNonEmptyList(
-                    self::asNonLiteralType($a->type_param),
+                    $this->asNonLiteralType($a->type_param),
                 ),
                 $a instanceof TList => new TList(
-                    self::asNonLiteralType($a->type_param),
+                    $this->asNonLiteralType($a->type_param),
                 ),
                 $a instanceof TNonEmptyArray => new TNonEmptyArray([
-                    self::asNonLiteralType($a->type_params[0]),
-                    self::asNonLiteralType($a->type_params[1]),
+                    $this->asNonLiteralType($a->type_params[0]),
+                    $this->asNonLiteralType($a->type_params[1]),
                 ]),
                 $a instanceof TArray => new TArray([
-                    self::asNonLiteralType($a->type_params[0]),
-                    self::asNonLiteralType($a->type_params[1]),
+                    $this->asNonLiteralType($a->type_params[0]),
+                    $this->asNonLiteralType($a->type_params[1]),
                 ]),
                 default => $a,
             }),
