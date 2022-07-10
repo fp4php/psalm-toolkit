@@ -212,10 +212,12 @@ final class Types
                     : new TNonEmptyString(),
                 $a instanceof TLiteralInt => new TInt(),
                 $a instanceof TLiteralFloat => new TFloat(),
-                $a instanceof TKeyedArray => new TNonEmptyArray([
-                    self::asNonLiteralType($a->getGenericKeyType()),
-                    self::asNonLiteralType($a->getGenericValueType()),
-                ]),
+                $a instanceof TKeyedArray => $a->is_list
+                    ? new TNonEmptyList($a->getGenericValueType())
+                    : new TNonEmptyArray([
+                        self::asNonLiteralType($a->getGenericKeyType()),
+                        self::asNonLiteralType($a->getGenericValueType()),
+                    ]),
                 $a instanceof TNonEmptyList => new TNonEmptyList(
                     self::asNonLiteralType($a->type_param),
                 ),
