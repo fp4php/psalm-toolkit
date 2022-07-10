@@ -213,7 +213,9 @@ final class Types
                 $a instanceof TLiteralInt => new TInt(),
                 $a instanceof TLiteralFloat => new TFloat(),
                 $a instanceof TKeyedArray => $a->is_list
-                    ? new TNonEmptyList($a->getGenericValueType())
+                    ? new TNonEmptyList(
+                        self::asNonLiteralType($a->getGenericValueType()),
+                    )
                     : new TNonEmptyArray([
                         self::asNonLiteralType($a->getGenericKeyType()),
                         self::asNonLiteralType($a->getGenericValueType()),
