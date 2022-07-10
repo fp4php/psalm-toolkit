@@ -18,6 +18,9 @@ use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
 use Psalm\StatementsSource;
 use Psalm\Type\Atomic;
+use Psalm\Type\Atomic\TBool;
+use Psalm\Type\Atomic\TTrue;
+use Psalm\Type\Atomic\TFalse;
 use Psalm\Type\Atomic\TArray;
 use Psalm\Type\Atomic\TFloat;
 use Psalm\Type\Atomic\TInt;
@@ -208,6 +211,7 @@ final class Types
     {
         return new Union(
             map(asList($type->getAtomicTypes()), fn($a) => match (true) {
+                $a instanceof TTrue, $a instanceof TFalse => new TBool(),
                 $a instanceof TLiteralClassString => new TClassString(),
                 $a instanceof TLiteralString => empty($a->value)
                     ? new TString()
