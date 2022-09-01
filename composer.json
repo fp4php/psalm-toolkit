@@ -21,7 +21,7 @@
     },
     "require": {
         "php": "^8.0",
-        "vimeo/psalm": "^4.13"
+        "vimeo/psalm": "5.0.0-beta1"
     },
     "require-dev": {
         "fp4php/functional": "v5.x-dev"

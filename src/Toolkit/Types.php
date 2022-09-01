@@ -24,7 +24,7 @@ use Psalm\Type\Atomic\TFalse;
 use Psalm\Type\Atomic\TArray;
 use Psalm\Type\Atomic\TFloat;
 use Psalm\Type\Atomic\TInt;
-use Psalm\Type\Atomic\TPositiveInt;
+use Psalm\Type\Atomic\TIntRange;
 use Psalm\Type\Atomic\TKeyedArray;
 use Psalm\Type\Atomic\TList;
 use Psalm\Type\Atomic\TClassString;
@@ -216,7 +216,7 @@ final class Types
                 $a instanceof TLiteralString => empty($a->value)
                     ? new TString()
                     : new TNonEmptyString(),
-                $a instanceof TLiteralInt, $a instanceof TPositiveInt => new TInt(),
+                $a instanceof TLiteralInt, $a instanceof TIntRange => new TInt(),
                 $a instanceof TLiteralFloat => new TFloat(),
                 $a instanceof TKeyedArray => $a->is_list
                     ? new TNonEmptyList(

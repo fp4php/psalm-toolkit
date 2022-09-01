@@ -47,6 +47,7 @@ final class SeePsalmIssuesAssertionReconciler implements AssertionReconcilerInte
         $actualIssues = reindex($issuesData[$seePsalmIssues->code_location->file_path], self::toKeyFn());
         $handledIssues = filter($actualIssues, self::isHandled($haveCodeAssertion, $expectedIssues), preserveKeys: true);
 
+        /** @psalm-suppress InternalProperty */
         foreach ($handledIssues as $i) {
             IssueBuffer::remove($i->file_path, $i->type, $i->from);
         }
@@ -74,6 +75,8 @@ final class SeePsalmIssuesAssertionReconciler implements AssertionReconcilerInte
     /**
      * @param array<string, SeePsalmIssue> $expectedIssues
      * @return Closure(IssueData): bool
+     *
+     * @psalm-suppress InternalProperty
      */
     private static function isHandled(HaveCodeAssertionData $haveCodeAssertion, array $expectedIssues): Closure
     {
