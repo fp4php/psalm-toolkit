@@ -42,6 +42,7 @@ use Psalm\Type\Atomic\TNamedObject;
 use Psalm\Type\Atomic\TNull;
 use Psalm\Type\Atomic\TObjectWithProperties;
 use Psalm\Type\Atomic\TGenericObject;
+use Psalm\Type\Atomic\TPositiveInt;
 use Psalm\Type\Union;
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
@@ -216,7 +217,9 @@ final class Types
                 $a instanceof TLiteralString => empty($a->value)
                     ? new TString()
                     : new TNonEmptyString(),
-                $a instanceof TLiteralInt, $a instanceof TIntRange => new TInt(),
+                $a instanceof TLiteralInt,
+                    $a instanceof TIntRange,
+                    $a instanceof TPositiveInt => new TInt(),
                 $a instanceof TLiteralFloat => new TFloat(),
                 $a instanceof TKeyedArray => $a->is_list
                     ? new TNonEmptyList(
