@@ -167,6 +167,7 @@ final class Types
         StatementsSource |
         NodeTypeProvider |
         AfterMethodCallAnalysisEvent |
+        AfterFunctionCallAnalysisEvent |
         MethodReturnTypeProviderEvent |
         AfterStatementAnalysisEvent |
         FunctionReturnTypeProviderEvent |
@@ -183,6 +184,7 @@ final class Types
             $to instanceof FunctionReturnTypeProviderEvent => $to->getStatementsSource()->getNodeTypeProvider(),
             $to instanceof AfterExpressionAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
             $to instanceof AfterMethodCallAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
+            $to instanceof AfterFunctionCallAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
         };
 
         $provider->setType($for, $type);
