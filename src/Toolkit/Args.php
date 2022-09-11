@@ -67,4 +67,28 @@ final class Args
                 fn(Union $type) => new CallArg($arg, new CodeLocation($source, $arg), $type)
             ));
     }
+
+    /**
+     * @return Option<CallArg>
+     */
+    public function getFirstCallArg(
+        MethodReturnTypeProviderEvent |
+        FunctionReturnTypeProviderEvent |
+        AfterFunctionCallAnalysisEvent |
+        AfterMethodCallAnalysisEvent $from,
+    ): Option {
+        return $this->getCallArgs($from)->flatMap(fn(ArrayList $args) => $args->head());
+    }
+
+    /**
+     * @return Option<Union>
+     */
+    public function getFirstCallArgType(
+        MethodReturnTypeProviderEvent |
+        FunctionReturnTypeProviderEvent |
+        AfterFunctionCallAnalysisEvent |
+        AfterMethodCallAnalysisEvent $from,
+    ): Option {
+        return $this->getFirstCallArg($from)->map(fn(CallArg $arg) => $arg->type);
+    }
 }
