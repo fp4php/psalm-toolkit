@@ -12,6 +12,7 @@ use Psalm\Internal\Analyzer\StatementsAnalyzer;
 use Psalm\Internal\Type\TypeExpander;
 use Psalm\NodeTypeProvider;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
+use Psalm\Plugin\EventHandler\Event\AfterFunctionCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterMethodCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
@@ -140,6 +141,7 @@ final class Types
         StatementsSource |
         NodeTypeProvider |
         AfterMethodCallAnalysisEvent |
+        AfterFunctionCallAnalysisEvent |
         MethodReturnTypeProviderEvent |
         AfterStatementAnalysisEvent |
         FunctionReturnTypeProviderEvent |
@@ -155,6 +157,7 @@ final class Types
             $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            $from instanceof AfterFunctionCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
         };
 
         return Option::fromNullable($provider->getType($for));
