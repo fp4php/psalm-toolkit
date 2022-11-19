@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Fp\PsalmToolkit\Toolkit\Assertion;
 
 use Fp\Functional\Option\Option;
+
 use function Fp\Collection\at;
+use function Fp\Evidence\of;
 
 final class Assertions
 {
@@ -24,7 +26,7 @@ final class Assertions
      */
     public function __invoke(string $name): Option
     {
-        return at($this->data, $name)->filterOf($name);
+        return at($this->data, $name)->flatMap(of($name));
     }
 
     /**

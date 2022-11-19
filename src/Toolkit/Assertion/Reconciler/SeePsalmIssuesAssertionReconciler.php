@@ -13,6 +13,7 @@ use Fp\PsalmToolkit\Toolkit\Assertion\Collector\SeePsalmIssuesData;
 use Fp\PsalmToolkit\Toolkit\Assertion\Issue\SeePsalmIssueAssertionFailed;
 use Psalm\Internal\Analyzer\IssueData;
 use Psalm\IssueBuffer;
+use function Fp\Cast\asList;
 use function Fp\Collection\filter;
 use function Fp\Collection\reindex;
 
@@ -45,14 +46,14 @@ final class SeePsalmIssuesAssertionReconciler implements AssertionReconcilerInte
 
         $expectedIssues = reindex($seePsalmIssues->issues, self::toKeyFn());
         $actualIssues = reindex($issuesData[$seePsalmIssues->code_location->file_path], self::toKeyFn());
-        $handledIssues = filter($actualIssues, self::isHandled($haveCodeAssertion, $expectedIssues), preserveKeys: true);
+        $handledIssues = filter($actualIssues, self::isHandled($haveCodeAssertion, $expectedIssues));
 
         /** @psalm-suppress InternalProperty */
         foreach ($handledIssues as $i) {
             IssueBuffer::remove($i->file_path, $i->type, $i->from);
         }
 
-        return filter($expectedIssues, fn(SeePsalmIssue $i) => !array_key_exists(self::toKey($i), $handledIssues));
+        return filter(asList($expectedIssues), fn(SeePsalmIssue $i) => !array_key_exists(self::toKey($i), $handledIssues));
     }
 
     /**
