@@ -53,6 +53,11 @@ use function Fp\Evidence\proveOf;
 
 final class Types
 {
+    public function asUnion(Atomic $atomic): Union
+    {
+        return new Union([$atomic]);
+    }
+
     public function isTypeContainedByType(Union $input_type, Union $container_type): bool
     {
         return PsalmApi::$codebase->isTypeContainedByType($input_type, $container_type);
