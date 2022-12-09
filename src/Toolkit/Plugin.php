@@ -23,6 +23,7 @@ final class Plugin implements PluginEntryPointInterface
         PsalmApi::$args = new Args();
         PsalmApi::$classlikes = new Classlikes();
         PsalmApi::$codebase = ProjectAnalyzer::getInstance()->getCodebase();
+        PsalmApi::$issue = new Issue();
 
         $register = function(string $hook) use ($registration): void {
             if (class_exists($hook)) {
