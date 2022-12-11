@@ -97,6 +97,14 @@ final class Types
         return $cloned;
     }
 
+    public function asNonNullable(Union $union): Union
+    {
+        $cloned = clone $union;
+        $cloned->removeType((new TNull())->getId());
+
+        return $cloned;
+    }
+
     /**
      * @template T of TTemplateParam|TIterable|TNamedObject|TObjectWithProperties
      * @param T $to
