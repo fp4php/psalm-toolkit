@@ -13,4 +13,6 @@ final class PsalmApi
     public static Codebase $codebase;
     public static Classlikes $classlikes;
     public static Issue $issue;
+    public static Methods $methods;
+    public static Properties $properties;
 }
