@@ -22,9 +22,20 @@ final class Properties
             ? PsalmApi::$classlikes->getStorage($object)
             : Option::some($object);
 
-        return $storage->flatMap(fn(ClassLikeStorage $s) => at($s->properties, $property)->orElse(
-            fn() => self::getAppearingStorage($s, $property),
-        ));
+        return $storage->flatMap(
+            fn(ClassLikeStorage $s) => at($s->properties, $property)
+                ->orElse(fn() => self::getAppearingStorage($s, $property))
+                ->orElse(fn() => self::getFromParent($s, $property)),
+        );
+    }
+
+    /**
+     * @return Option<PropertyStorage>
+     */
+    private function getFromParent(ClassLikeStorage $storage, string $property): Option
+    {
+        return Option::fromNullable($storage->parent_class)
+            ->flatMap(fn(string $parent) => $this->getStorage($parent, $property));
     }
 
     /**

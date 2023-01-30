@@ -24,6 +24,6 @@
         "vimeo/psalm": "^4.26"
     },
     "require-dev": {
-        "fp4php/functional": "v5.x-dev"
+        "fp4php/functional": "^5.0"
     }
 }
