@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fp\PsalmToolkit\Toolkit;
+namespace Fp\PsalmToolkit;
 
 use Closure;
 use Fp\Functional\Option\Option;
@@ -32,12 +32,8 @@ final class Issue
     ): Closure {
         $s = match (true) {
             $source instanceof StatementsSource => $source,
-            $source instanceof AfterMethodCallAnalysisEvent => $source->getStatementsSource(),
-            $source instanceof AfterFunctionCallAnalysisEvent => $source->getStatementsSource(),
             $source instanceof MethodReturnTypeProviderEvent => $source->getSource(),
-            $source instanceof AfterStatementAnalysisEvent => $source->getStatementsSource(),
-            $source instanceof FunctionReturnTypeProviderEvent => $source->getStatementsSource(),
-            $source instanceof AfterExpressionAnalysisEvent => $source->getStatementsSource(),
+            default => $source->getStatementsSource(),
         };
 
         return function(CodeIssue $issue) use ($s) {

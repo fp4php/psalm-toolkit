@@ -1,76 +1,41 @@
 ## Psalm toolkit
 
-Helpers for plugin authoring and static testing tool.
+Psalm api in the functional style.
 
 ### Installation
+
+```shell
+$ composer require fp4php/psalm-toolkit
+```
 
 Package `fp4php/functional` must be installed manually.
 
 ```shell
-$ composer require --dev fp4php/functional fp4php/psalm-toolkit
-$ vendor/bin/psalm-plugin enable fp4php/psalm-toolkit
+$ composer require fp4php/functional
 ```
 
 ### Usage
 
-At the moment you can use two methods for static asserts:
-- `seePsalmIssue`: Checks that a code block from the `haveCode` have specific issue.
-- `seeReturnType`: Verifies a return type from the `haveCode` block.
-
-Usage example below:
+Call in the plugin entry point:
 
 ```php
 <?php
 
-namespace Fp\Decode\Test\Static;
+declare(strict_types=1);
 
-use Fp\PsalmToolkit\StaticTest\PsalmTest;
-use Fp\PsalmToolkit\StaticTest\StaticTestCase;
-use Fp\PsalmToolkit\StaticType\StaticTypes as t;
+use SimpleXMLElement;
+use Psalm\Plugin\PluginEntryPointInterface;
+use Psalm\Plugin\RegistrationInterface;
+use Fp\PsalmToolkit\PsalmApi;
 
-final class ExampleTest extends PsalmTest
+final class Plugin implements PluginEntryPointInterface
 {
-    public function __invoke(): void
+    public function __invoke(RegistrationInterface $registration, ?SimpleXMLElement $config = null): void
     {
-        StaticTestCase::describe('See InvalidScalarArgument issue')
-            ->haveCode(function() {
-                $plus = fn(int $a, int $b): int => $a + $b;
+        PsalmApi::init();
 
-                $plus(10, 10.00);
-            })
-            ->seePsalmIssue(
-                type: 'InvalidScalarArgument',
-                message: 'Argument 2 expects int, float(10) provided',
-            );
-
-        StaticTestCase::describe('See return type (invariant type compare)')
-            ->haveCode(function() {
-                return [
-                    'twenty' => 10 + 10,
-                    'message' => 'Hello world!'
-                ];
-            })
-            ->seeReturnType(
-                is: t::shape([
-                    'twenty' => t::literal(20),
-                    'message' => t::literal('Hello world!'),
-                ]),
-            );
-
-        StaticTestCase::describe('See return type (covariant type compare)')
-            ->haveCode(function() {
-                return [
-                    'twenty' => 10 + 10,
-                    'message' => 'Hello world!'
-                ];
-            })
-            ->seeReturnType(
-                is: t::shape([
-                    'twenty' => t::int(),
-                    'message' => t::string(),
-                ]),
-                invariant: false,
-            );
+        // next register hooks
     }
 }
+
 ```

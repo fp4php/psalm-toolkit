@@ -14,14 +14,9 @@
             "email": "klimichkartorgnusov@gmail.com"
         }
     ],
-    "extra": {
-        "psalm": {
-            "pluginClass": "Fp\\PsalmToolkit\\Integration\\Plugin"
-        }
-    },
     "require": {
-        "php": "^8.0",
-        "vimeo/psalm": "^4.26"
+        "php": "^8.1",
+        "vimeo/psalm": "^5.7"
     },
     "require-dev": {
         "fp4php/functional": "^5.0"

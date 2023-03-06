@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Fp\PsalmToolkit\Toolkit;
+namespace Fp\PsalmToolkit;
 
-use Fp\Collections\ArrayList;
 use PhpParser\Node;
-use Fp\Functional\Option\Option;
+use Psalm\Type\Union;
 use Psalm\CodeLocation;
 use Psalm\NodeTypeProvider;
+use Psalm\StatementsSource;
 use Psalm\Plugin\EventHandler\Event\AfterExpressionAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterFunctionCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\AfterMethodCallAnalysisEvent;
 use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
-use Psalm\StatementsSource;
-use Psalm\Type\Union;
+use Fp\Functional\Option\Option;
+use Fp\Collections\ArrayList;
 
 use function Fp\Evidence\proveOf;
 
@@ -41,19 +41,17 @@ final class Args
     }
 
     /**
-     * @return Option<ArrayList<CallArg>>
+     * @return ArrayList<CallArg>
      */
     public function getCallArgs(
         MethodReturnTypeProviderEvent |
         FunctionReturnTypeProviderEvent |
         AfterFunctionCallAnalysisEvent |
         AfterMethodCallAnalysisEvent $from,
-    ): Option {
+    ): ArrayList {
         $source = match (true) {
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource(),
-            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource(),
-            $from instanceof AfterFunctionCallAnalysisEvent => $from->getStatementsSource(),
-            $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource(),
+            default => $from->getStatementsSource(),
         };
 
         $args = match (true) {
@@ -65,7 +63,8 @@ final class Args
         return ArrayList::collect($args)
             ->traverseOption(fn($arg) => $this->getArgType($from, $arg)->map(
                 fn(Union $type) => new CallArg($arg, new CodeLocation($source, $arg), $type)
-            ));
+            ))
+            ->getOrElse(ArrayList::empty());
     }
 
     /**
@@ -77,7 +76,7 @@ final class Args
         AfterFunctionCallAnalysisEvent |
         AfterMethodCallAnalysisEvent $from,
     ): Option {
-        return $this->getCallArgs($from)->flatMap(fn(ArrayList $args) => $args->head());
+        return $this->getCallArgs($from)->head();
     }
 
     /**

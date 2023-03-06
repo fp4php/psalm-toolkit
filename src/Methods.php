@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fp\PsalmToolkit\Toolkit;
+namespace Fp\PsalmToolkit;
 
 use Fp\Functional\Option\Option;
 use Psalm\Internal\MethodIdentifier;

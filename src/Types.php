@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fp\PsalmToolkit\Toolkit;
+namespace Fp\PsalmToolkit;
 
 use PhpParser\Node;
 use Fp\Functional\Option\Option;
@@ -18,6 +18,7 @@ use Psalm\Plugin\EventHandler\Event\FunctionReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\MethodReturnTypeProviderEvent;
 use Psalm\Plugin\EventHandler\Event\AfterStatementAnalysisEvent;
 use Psalm\StatementsSource;
+use Psalm\Type;
 use Psalm\Type\Atomic;
 use Psalm\Type\Atomic\TBool;
 use Psalm\Type\Atomic\TTrue;
@@ -27,14 +28,12 @@ use Psalm\Type\Atomic\TFloat;
 use Psalm\Type\Atomic\TInt;
 use Psalm\Type\Atomic\TIntRange;
 use Psalm\Type\Atomic\TKeyedArray;
-use Psalm\Type\Atomic\TList;
 use Psalm\Type\Atomic\TClassString;
 use Psalm\Type\Atomic\TLiteralClassString;
 use Psalm\Type\Atomic\TLiteralFloat;
 use Psalm\Type\Atomic\TLiteralInt;
 use Psalm\Type\Atomic\TLiteralString;
 use Psalm\Type\Atomic\TNonEmptyArray;
-use Psalm\Type\Atomic\TNonEmptyList;
 use Psalm\Type\Atomic\TNonEmptyString;
 use Psalm\Type\Atomic\TString;
 use Psalm\Type\Atomic\TTemplateParam;
@@ -43,8 +42,8 @@ use Psalm\Type\Atomic\TNamedObject;
 use Psalm\Type\Atomic\TNull;
 use Psalm\Type\Atomic\TObjectWithProperties;
 use Psalm\Type\Atomic\TGenericObject;
-use Psalm\Type\Atomic\TPositiveInt;
 use Psalm\Type\Union;
+
 use function Fp\Cast\asList;
 use function Fp\Collection\at;
 use function Fp\Collection\first;
@@ -68,41 +67,30 @@ final class Types
         return $a_type->getId() === $b_type->getId();
     }
 
-    public function toDocblockString(Union|Atomic $type): string
-    {
-        return UnionToString::for($type instanceof Atomic ? new Union([$type]) : $type);
-    }
-
     public function asPossiblyUndefined(Union $union): Union
     {
-        $cloned = clone $union;
-        $cloned->possibly_undefined = true;
-
-        return $cloned;
+        return $union->setPossiblyUndefined(true);
     }
 
     public function asAlwaysDefined(Union $union): Union
     {
-        $cloned = clone $union;
-        $cloned->possibly_undefined = false;
-
-        return $cloned;
+        return $union->setPossiblyUndefined(false);
     }
 
     public function asNullable(Union $union): Union
     {
-        $cloned = clone $union;
-        $cloned->addType(new TNull());
+        $builder = $union->getBuilder();
+        $builder->addType(new TNull());
 
-        return $cloned;
+        return $builder->freeze();
     }
 
     public function asNonNullable(Union $union): Union
     {
-        $cloned = clone $union;
-        $cloned->removeType((new TNull())->getId());
+        $builder = $union->getBuilder();
+        $builder->removeType((new TNull())->getKey());
 
-        return $cloned;
+        return $builder->freeze();
     }
 
     /**
@@ -115,10 +103,7 @@ final class Types
         TTemplateParam|TIterable|TNamedObject|TObjectWithProperties $to,
         TNamedObject|TTemplateParam|TIterable|TObjectWithProperties $type,
     ): TTemplateParam|TIterable|TNamedObject|TObjectWithProperties {
-        $cloned = clone $to;
-        $cloned->addIntersectionType($type);
-
-        return $cloned;
+        return $to->addIntersectionType($type);
     }
 
     public function expandUnion(string $self_class, Union $type): Union
@@ -165,12 +150,8 @@ final class Types
         $provider = match (true) {
             $from instanceof NodeTypeProvider => $from,
             $from instanceof StatementsSource => $from->getNodeTypeProvider(),
-            $from instanceof AfterStatementAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
             $from instanceof MethodReturnTypeProviderEvent => $from->getSource()->getNodeTypeProvider(),
-            $from instanceof FunctionReturnTypeProviderEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterExpressionAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterMethodCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
-            $from instanceof AfterFunctionCallAnalysisEvent => $from->getStatementsSource()->getNodeTypeProvider(),
+            default => $from->getStatementsSource()->getNodeTypeProvider(),
         };
 
         return Option::fromNullable($provider->getType($for));
@@ -192,12 +173,8 @@ final class Types
         $provider = match (true) {
             $to instanceof NodeTypeProvider => $to,
             $to instanceof StatementsSource => $to->getNodeTypeProvider(),
-            $to instanceof AfterStatementAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
             $to instanceof MethodReturnTypeProviderEvent => $to->getSource()->getNodeTypeProvider(),
-            $to instanceof FunctionReturnTypeProviderEvent => $to->getStatementsSource()->getNodeTypeProvider(),
-            $to instanceof AfterExpressionAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
-            $to instanceof AfterMethodCallAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
-            $to instanceof AfterFunctionCallAnalysisEvent => $to->getStatementsSource()->getNodeTypeProvider(),
+            default => $to->getStatementsSource()->getNodeTypeProvider(),
         };
 
         $provider->setType($for, $type);
@@ -235,24 +212,16 @@ final class Types
                 $a instanceof TLiteralString => empty($a->value)
                     ? new TString()
                     : new TNonEmptyString(),
-                $a instanceof TLiteralInt,
-                    $a instanceof TIntRange,
-                    $a instanceof TPositiveInt => new TInt(),
+                $a instanceof TLiteralInt, $a instanceof TIntRange => new TInt(),
                 $a instanceof TLiteralFloat => new TFloat(),
                 $a instanceof TKeyedArray => $a->is_list
-                    ? new TNonEmptyList(
+                    ? Type::getListAtomic(
                         $this->asNonLiteralType($a->getGenericValueType()),
                     )
                     : new TNonEmptyArray([
                         $this->asNonLiteralType($a->getGenericKeyType()),
                         $this->asNonLiteralType($a->getGenericValueType()),
                     ]),
-                $a instanceof TNonEmptyList => new TNonEmptyList(
-                    $this->asNonLiteralType($a->type_param),
-                ),
-                $a instanceof TList => new TList(
-                    $this->asNonLiteralType($a->type_param),
-                ),
                 $a instanceof TNonEmptyArray => new TNonEmptyArray([
                     $this->asNonLiteralType($a->type_params[0]),
                     $this->asNonLiteralType($a->type_params[1]),
